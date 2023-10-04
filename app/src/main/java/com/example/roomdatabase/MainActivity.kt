@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.roomdatabase.roomDataBase.UserDataBase
+import com.example.roomdatabase.roomDataBase.data_base.UserDataBase
 import com.example.roomdatabase.roomDataBase.entity.UserDetails
 import com.example.roomdatabase.ui.theme.RoomDataBaseTheme
 import kotlinx.coroutines.launch
