@@ -13,5 +13,5 @@ data class UserDetails(
     @ColumnInfo
     var name: String?,
     @ColumnInfo
-    var age: Int?
+    var bloodGroup: String?
 )
