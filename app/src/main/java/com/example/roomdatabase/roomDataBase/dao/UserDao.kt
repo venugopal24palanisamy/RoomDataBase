@@ -15,4 +15,8 @@ interface UserDao {
 
     @Query("SELECT * FROM USER_DETAILS WHERE bloodGroup = :bloodGroup")
     suspend fun getUserDetailsByBloodGroup(bloodGroup: String): List<UserDetails>
+
+    @Query("DELETE FROM USER_DETAILS WHERE name = :name")
+    suspend fun deleteUserByName(name:String)
+
 }

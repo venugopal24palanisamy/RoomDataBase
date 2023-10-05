@@ -7,9 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,15 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,9 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.roomdatabase.components.BloodGroupDropDown
 import com.example.roomdatabase.roomDataBase.data_base.UserDataBase
 import com.example.roomdatabase.roomDataBase.entity.UserDetails
@@ -57,11 +52,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             RoomDataBaseTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    Greeting()
                 }
             }
         }
@@ -71,30 +65,29 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun Greeting() {
     val context = LocalContext.current
+
     val database = UserDataBase.getDatabase(context)
+
     val myDao = database.userDao()
 
-    var ins by remember { mutableStateOf(false) }
-    if (ins) {
-    }
-
     val scope = rememberCoroutineScope()
-
 
     var username by remember {
         mutableStateOf("")
     }
 
-    var age by remember {
-        mutableStateOf("")
-    }
     var selectedBloodGroup by remember { mutableStateOf("A+") }
+
     var filterBloodGroup by remember { mutableStateOf("") }
 
+    var searchName by remember { mutableStateOf("") }
+
     var expanded by remember { mutableStateOf(false) }
+
     var isFilterExpanded by remember { mutableStateOf(false) }
+
     var filteredList by remember {
         mutableStateOf<List<UserDetails>?>(null)
     }
@@ -114,12 +107,8 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     fun getUserDetails() {
         scope.launch {
             try {
-
                 filteredList = myDao.getUserDetailsByBloodGroup(filterBloodGroup)
-
                 myDao.getUserDetailsByBloodGroup(filterBloodGroup).forEach {
-
-
                     Log.d("getUserDetails", "User Name : ${it.name} Age : ${it.bloodGroup}")
                 }
             } catch (e: java.lang.Exception) {
@@ -129,11 +118,22 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 
     }
 
+    fun deleteUserByName() {
+        scope.launch {
+
+            try {
+                myDao.deleteUserByName(searchName)
+                getUserDetails()
+            } catch (e: Exception) {
+                println("cancelled")
+            }
+
+        }
+    }
+
     Column(
-        verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .padding(35.dp)
-        //.verticalScroll(rememberScrollState()),
     ) {
 
         OutlinedTextField(value = username,
@@ -141,9 +141,17 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(text = "Name") })
 
-        Spacer(modifier = Modifier.height(25.dp))
-        Text(text = "Select Blood Group")
-        Spacer(modifier = Modifier.height(5.dp))
+        Spacer(modifier = Modifier.height(15.dp))
+
+        Text(
+            text = "Select Blood Group",
+            modifier = Modifier.fillMaxWidth(),
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp, textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         Card(
             shape = RoundedCornerShape(15.dp),
             border = BorderStroke(
@@ -168,13 +176,15 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     contentDescription = "bloodGroup"
                 )
             }
-
         }
+
         Spacer(modifier = Modifier.height(25.dp))
+
         if (expanded) BloodGroupDropDown(onBloodGroupSelected = {
             selectedBloodGroup = it
             expanded = false
         })
+
         Button(
             onClick = { addUser() }, modifier = Modifier.fillMaxWidth()
         ) {
@@ -182,8 +192,16 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                 text = "Add User",
             )
         }
+
         Spacer(modifier = Modifier.height(25.dp))
-        Text(text = "Select Blood Group to get user details")
+
+        Text(
+            text = "Select Blood Group to get user details",
+            modifier = Modifier.fillMaxWidth(),
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp, textAlign = TextAlign.Center
+        )
+
         Spacer(modifier = Modifier.height(5.dp))
 
         Card(
@@ -210,23 +228,29 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     contentDescription = "bloodGroup"
                 )
             }
-
         }
+
         Spacer(modifier = Modifier.height(25.dp))
+
         if (isFilterExpanded) BloodGroupDropDown(onBloodGroupSelected = {
             filterBloodGroup = it
             isFilterExpanded = false
         })
+
         Spacer(modifier = Modifier.height(5.dp))
 
         Button(
-            onClick = { getUserDetails() }, modifier = Modifier.fillMaxWidth()
+            onClick = { getUserDetails() },
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 text = "Get User Details",
             )
         }
-        if (filteredList != null) {
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        filteredList?.let {
             LazyColumn {
                 items(filteredList!!.size) {
                     Text(
@@ -234,8 +258,40 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     )
                 }
             }
-        }
+        } ?: Text(
+            text = "No Data Available",
+            textAlign = TextAlign.Center,
+            fontSize = 16.sp, modifier = Modifier
+                .fillMaxWidth()
+        )
 
+        Spacer(modifier = Modifier.height(15.dp))
+
+        Text(
+            text = "Delete User Details by Name",
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
+
+        )
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        OutlinedTextField(value = searchName,
+            onValueChange = { searchName = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = "Search User") })
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        Button(
+            onClick = { deleteUserByName() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Delete User",
+            )
+        }
     }
 }
 
@@ -244,6 +300,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     RoomDataBaseTheme {
-        Greeting("Android")
+        Greeting()
     }
 }
