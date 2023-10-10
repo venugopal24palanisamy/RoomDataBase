@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">RoomDataBase</string>
+    <string name="update_user_details_by_blood_group">Update User Details by Blood Group</string>
 </resources>

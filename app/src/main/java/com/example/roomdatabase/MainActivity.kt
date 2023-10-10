@@ -2,50 +2,39 @@ package com.example.roomdatabase
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.roomdatabase.components.BloodGroupDropDown
-import com.example.roomdatabase.roomDataBase.data_base.UserDataBase
-import com.example.roomdatabase.roomDataBase.entity.UserDetails
 import com.example.roomdatabase.ui.theme.RoomDataBaseTheme
-import kotlinx.coroutines.launch
+import com.example.roomdatabase.viewModel.MainViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +44,8 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting()
+                    UpdateValueView()
+                    //Greeting()
                 }
             }
         }
@@ -67,83 +57,26 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Greeting() {
     val context = LocalContext.current
-
-    val database = UserDataBase.getDatabase(context)
-
-    val myDao = database.userDao()
-
-    val scope = rememberCoroutineScope()
-
-    var username by remember {
-        mutableStateOf("")
-    }
-
-    var selectedBloodGroup by remember { mutableStateOf("A+") }
-
-    var filterBloodGroup by remember { mutableStateOf("") }
-
-    var searchName by remember { mutableStateOf("") }
-
-    var expanded by remember { mutableStateOf(false) }
-
-    var isFilterExpanded by remember { mutableStateOf(false) }
-
-    var filteredList by remember {
-        mutableStateOf<List<UserDetails>?>(null)
-    }
-
-    fun addUser() {
-        scope.launch {
-            try {
-                myDao.insertUserDetails(
-                    UserDetails(null, username, selectedBloodGroup)
-                )
-            } catch (ex: Exception) {
-                println("cancelled")
-            }
-        }
-    }
-
-    fun getUserDetails() {
-        scope.launch {
-            try {
-                filteredList = myDao.getUserDetailsByBloodGroup(filterBloodGroup)
-                myDao.getUserDetailsByBloodGroup(filterBloodGroup).forEach {
-                    Log.d("getUserDetails", "User Name : ${it.name} Age : ${it.bloodGroup}")
-                }
-            } catch (e: java.lang.Exception) {
-                println("cancelled")
-            }
-        }
-
-    }
-
-    fun deleteUserByName() {
-        scope.launch {
-
-            try {
-                myDao.deleteUserByName(searchName)
-                getUserDetails()
-            } catch (e: Exception) {
-                println("cancelled")
-            }
-
-        }
-    }
+    val mainViewModel = MainViewModel(context)
+    val filteredDataList by mainViewModel.filteredLiveData.observeAsState()
+    val updatedName by mainViewModel.updatedBloodGroupLiveData.observeAsState()
+    val updatedBloodGroup by mainViewModel.filteredLiveData.observeAsState()
+    var updateName by remember { mutableStateOf("") }
+    var updateBloodGroup by remember { mutableStateOf("") }
+    var userId by remember { mutableIntStateOf(0) }
 
     Column(
         modifier = Modifier
             .padding(35.dp)
     ) {
-
-        OutlinedTextField(value = username,
-            onValueChange = { username = it },
+        /*OutlinedTextField(value = mainViewModel.username,
+            onValueChange = { mainViewModel.username = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(text = "Name") })
+*/
+        //Spacer(modifier = Modifier.height(15.dp))
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        Text(
+        /*Text(
             text = "Select Blood Group",
             modifier = Modifier.fillMaxWidth(),
             fontWeight = FontWeight.Bold,
@@ -151,8 +84,8 @@ fun Greeting() {
         )
 
         Spacer(modifier = Modifier.height(10.dp))
-
-        Card(
+*/
+        /*Card(
             shape = RoundedCornerShape(15.dp),
             border = BorderStroke(
                 1.dp, color = Color.Black,
@@ -163,10 +96,10 @@ fun Greeting() {
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = selectedBloodGroup,
+                    text = mainViewModel.selectedBloodGroup,
                     modifier = Modifier
                         .weight(1F)
-                        .clickable { expanded = true },
+                        .clickable { mainViewModel.expanded = true },
                     color = Color.Black,
                     textAlign = TextAlign.Center
                 )
@@ -176,35 +109,97 @@ fun Greeting() {
                     contentDescription = "bloodGroup"
                 )
             }
-        }
+        }*/
 
-        Spacer(modifier = Modifier.height(25.dp))
+        //Spacer(modifier = Modifier.height(25.dp))
 
-        if (expanded) BloodGroupDropDown(onBloodGroupSelected = {
-            selectedBloodGroup = it
-            expanded = false
-        })
+        /*if (mainViewModel.expanded) BloodGroupDropDown(onBloodGroupSelected = {
+            mainViewModel.selectedBloodGroup = it
+            mainViewModel.expanded = false
+        })*/
 
-        Button(
-            onClick = { addUser() }, modifier = Modifier.fillMaxWidth()
+        /*Button(
+            onClick = { mainViewModel.addUser() }, modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 text = "Add User",
             )
+        }*/
+
+        //Spacer(modifier = Modifier.height(15.dp))
+
+        Button(
+            onClick = { mainViewModel.getUserDetails() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Get User Details",
+            )
         }
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(15.dp))
 
-        Text(
-            text = "Select Blood Group to get user details",
-            modifier = Modifier.fillMaxWidth(),
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp, textAlign = TextAlign.Center
+        filteredDataList?.let {
+            LazyColumn {
+                items(filteredDataList!!.size) {
+                    Text(
+                        modifier = Modifier.clickable {
+                            mainViewModel.setData(
+                                filteredDataList!![it].name!!,
+                                filteredDataList!![it].bloodGroup!!,
+                                filteredDataList!![it].userId!!
+                            )
+                        },
+                        text = "User Name: ${filteredDataList!![it].name} Blood Group: ${filteredDataList!![it].bloodGroup} "
+                    )
+                }
+            }
+        } ?: Text(
+            text = "No Data Available",
+            textAlign = TextAlign.Center,
+            fontSize = 16.sp, modifier = Modifier
+                .fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(5.dp))
 
-        Card(
+        /*OutlinedTextField(value = searchName,
+            onValueChange = { searchName = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = "Search User") })
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        Button(
+            onClick = { deleteUserByName() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Delete User",
+            )
+        }*/
+
+
+        Text(
+            text = "Update User Details by Blood Group",
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        OutlinedTextField(value = updateName,
+            onValueChange = {
+                updateName = it
+            },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = "Change User Name") })
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        /*Card(
             shape = RoundedCornerShape(15.dp),
             border = BorderStroke(
                 1.dp, color = Color.Black,
@@ -229,18 +224,54 @@ fun Greeting() {
                 )
             }
         }
+*/
+        // Spacer(modifier = Modifier.height(25.dp))
 
-        Spacer(modifier = Modifier.height(25.dp))
-
-        if (isFilterExpanded) BloodGroupDropDown(onBloodGroupSelected = {
+        /*if (isFilterExpanded) BloodGroupDropDown(onBloodGroupSelected = {
             filterBloodGroup = it
             isFilterExpanded = false
-        })
-
-        Spacer(modifier = Modifier.height(5.dp))
+        })*/
 
         Button(
-            onClick = { getUserDetails() },
+            onClick = {
+                //mainViewModel.updateUserName(updateName)
+                //mainViewModel.updateUserById(updateName, selectedBloodGroup, selectedUserId)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Update User",
+            )
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("CoroutineCreationDuringComposition")
+
+@Composable
+fun UpdateValueView() {
+
+    val context = LocalContext.current
+    val mainViewModel = MainViewModel(context)
+    val filteredDataList by mainViewModel.filteredLiveData.observeAsState()
+
+    val selectedName by mainViewModel.updatedNameLiveData.observeAsState()
+    val selectedBloodGroup by mainViewModel.updatedBloodGroupLiveData.observeAsState()
+    val selectedUserId by mainViewModel.updatedUserIdLiveData.observeAsState()
+
+    var updateName by remember { mutableStateOf("") }
+    var updateBloodGroup by remember { mutableStateOf("") }
+    var userId by remember { mutableIntStateOf(0) }
+
+    Column(
+        modifier = Modifier
+            .padding(35.dp)
+    ) {
+
+        Button(
+            onClick = { mainViewModel.getUserDetails() },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
@@ -250,11 +281,19 @@ fun Greeting() {
 
         Spacer(modifier = Modifier.height(15.dp))
 
-        filteredList?.let {
+        filteredDataList?.let {
             LazyColumn {
-                items(filteredList!!.size) {
+                items(filteredDataList!!.size) {
                     Text(
-                        text = "User Name: ${filteredList!![it].name} Blood Group: ${filteredList!![it].bloodGroup} "
+                        modifier = Modifier.clickable {
+                            mainViewModel.setData(
+                                filteredDataList!![it].name!!,
+                                filteredDataList!![it].bloodGroup!!,
+                                filteredDataList!![it].userId!!
+                            )
+                            updateName = filteredDataList!![it].name!!
+                        },
+                        text = "User Name: ${filteredDataList!![it].name} Blood Group: ${filteredDataList!![it].bloodGroup} "
                     )
                 }
             }
@@ -265,34 +304,43 @@ fun Greeting() {
                 .fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(15.dp))
+        Spacer(modifier = Modifier.height(5.dp))
 
         Text(
-            text = "Delete User Details by Name",
+            text = stringResource(R.string.update_user_details_by_blood_group),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
-
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(5.dp))
 
-        OutlinedTextField(value = searchName,
-            onValueChange = { searchName = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(text = "Search User") })
 
-        Spacer(modifier = Modifier.height(15.dp))
+        OutlinedTextField(value = updateName,
+            onValueChange = {
+                updateName = it
+            },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = "Change User Name") })
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+
 
         Button(
-            onClick = { deleteUserByName() },
+            onClick = {
+                //mainViewModel.updateUserName(updateName)
+                mainViewModel.updateUserById(updateName,selectedBloodGroup,selectedUserId)
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "Delete User",
+                text = "Update User",
             )
         }
     }
+
 }
 
 
